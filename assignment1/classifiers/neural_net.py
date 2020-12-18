@@ -123,13 +123,20 @@ class TwoLayerNet(object):
 
         # Backward pass: compute gradients
         grads = {}
-        #############################################################################
+        ############################################################################
         # TODO: Compute the backward pass, computing the derivatives of the weights #
         # and biases. Store the results in the grads dictionary. For example,       #
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+        # the derivative of the loss function is: pred_score - score 
+        # loss comes out to be softmax function output - 1
+        # i.e. probs[y] - 1
+        dL_df = probs[y] - 1
+        grads['b2'] =  1 * dL_df
+        grads['W2'] = W2 * grads['b2']
+        grads['b1'] = 1 * grads['W2']
+        grads['W1'] = W1 * grads['b1']
         
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
