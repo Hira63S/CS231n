@@ -39,8 +39,11 @@ def svm_loss_naive(W, X, y, reg):
             # margin = np.max(0, (scores[j] - correct_class_score + 1)) # note delta = 1
             if margin > 0:
                 loss += margin
-                dW[:, j] += X[i,:]
-                dW[:, y[i]] -= X[i,:]
+                # the derivative of the function w.r.t weight is X
+                
+                dW[:, j] += X[i,:] # i refers to the row and : refers to the columns
+                dW[:, y[i]] -= X[i,:]   # y[i] the y label for i-th example. 
+                # 
     # Right now the loss is a sum over all training examples, but we want it
     # to be an average instead so we divide by num_train.
     loss /= num_train
@@ -74,21 +77,42 @@ def svm_loss_vectorized(W, X, y, reg):
     """
     loss = 0.0
     dW = np.zeros(W.shape) # initialize the gradient as zero
-    
+    num_train = X.shape[0]
     #############################################################################
     # TODO:                                                                     #
     # Implement a vectorized version of the structured SVM loss, storing the    #
     # result in loss.                                                           #
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    scores = X.dot(W.T)
+    scores = X.dot(W)
+    yi_scores = scores[np.arange(scores.shape[0]), y]
+    margins = np.maximum(0, (scores - np.matrix(yi_scores).T + 1))
+    margins[np.arange(num_train), y] = 0
+    
+    loss = np.mean(np.sum(margins, axis=1))
+    loss += 0.5 * reg * np.sum(W*W)
+    
+    binary = margins
+    binary[margins > 0] = 1
+    
+    row_sum = np.sum(binary, axis=1)
+    binary[np.arange(num_train), y] = -row_sum.T
+    
+    dW = np.dot(X.T, binary)
+    
+    dW /= num_train
+    dW += reg * W
     correct_scores = scores[y]
-    margins = scores - correct_scores + 1
-    if margins > 0:
-        loss += margins
-        dW += X
-        dW[:, correct_scores] -= X 
-    pass
+    margins = (scores - correct_scores + 1)
+    # probably need to do a for loop here that goes through the margins?
+    
+    # if margins > 0:
+    #     loss += margins
+    #     dW[:, ] += X
+    #     dW[:, correct_scores] -= X 
+    
+    
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -103,7 +127,7 @@ def svm_loss_vectorized(W, X, y, reg):
     #############################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 

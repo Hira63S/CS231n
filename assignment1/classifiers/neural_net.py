@@ -81,9 +81,9 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         scores = None
-        output = X.dot(W1) + b1
+        output = X.dot(self.params['W1']) + self.params['b1']
         output = np.max(0, output)
-        scores = output.dot(W2) + b2
+        scores = output.dot(self.params['W2']) + self.params['b2']
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
