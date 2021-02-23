@@ -42,9 +42,7 @@ class TwoLayerNet(object):
         self.params['b1'] = np.zeros(hidden_size)
         self.params['W2'] = std * np.random.randn(hidden_size, output_size)
         self.params['b2'] = np.zeros(output_size)
-        
-        return model
-        
+
     def loss(self, X, y=None, reg=0.0):
         """
         Compute the loss and gradients for a two layer fully connected neural
@@ -74,31 +72,24 @@ class TwoLayerNet(object):
         N, D = X.shape
 
         # Compute the forward pass
-
-        
+        scores = None
         #############################################################################
         # TODO: Perform the forward pass, computing the class scores for the input. #
         # Store the result in the scores variable, which should be an array of      #
         # shape (N, C).                                                             #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        scores = None
 
-        output = np.dot(X, W1) + b1 
-        output = np.max(0, output)
-        scores = np.dot(output, W2) + b2
-        
-        # output = X.dot(self.params['W1']) + self.params['b1']
-        # output = np.max(0, output)
-        # scores = output.dot((self.params['W2']) + self.params['b2'])
-        # second ReLU?
-        
+        output = np.dot(X, W1) + b1
+        hidden = np.maximum(0, output)
+        scores = np.dot(hidden, W2) + b2
+
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # If the targets are not given then jump out, we're done
         if y is None:
             return scores
-        '''
+
         # Compute the loss
         loss = None
         #############################################################################
@@ -108,48 +99,57 @@ class TwoLayerNet(object):
         # classifier loss.                                                          #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-# one way to do this 
-        exp_scores = np.exp(scores)
-        log_scores = exp_scores/np.sum(exp_scores)
-        
-        # other example:
-        # Loss form: -fyi + Sum(e**fj)
-        # log_scores = np.log(scores)
-        # scores_y = scores[y]
-        # scores[y] = 0
-        # loss = -scores[y] + np.log(scores)
-        # negative loss of correct class probability is the final loss in this case:
+
+        # correct_scores = scores[y]
+        # loss = 
         
         exp_scores = np.exp(scores)
         probs = exp_scores/np.sum(exp_scores)
         loss = -1 * np.log(probs[y])
-        # regularization
-        # add this to the loss function? 
-        # or this is how it was done in the case of SVM loss: loss += reg * np.sum(W * W)
-        # np.sum(W1 * W1)
+        # loss = -1 * np.log(exp_scores[y]/(np.sum(exp_scores)))
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Backward pass: compute gradients
         grads = {}
-        ############################################################################
+        #############################################################################
         # TODO: Compute the backward pass, computing the derivatives of the weights #
         # and biases. Store the results in the grads dictionary. For example,       #
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        # the derivative of the loss function is: pred_score - score 
-        # loss comes out to be softmax function output - 1
-        # i.e. probs[y] - 1
-        dL_df = probs[y] - 1
-        grads['b2'] =  1 * dL_df
-        grads['W2'] = W2 * grads['b2']
-        grads['b1'] = 1 * grads['W2']
-        grads['W1'] = W1 * grads['b1']
-        
-        '''
+
+        # p_k is the probability for k class
+        # dl_df = probs[y] - 1
+        # grads['b2'] = 1 * dl_df
+        # grads['W2'] = W2 * grads['b2'].T
+        # grads['b1'] = 1 * grads['W2']
+        # grads['W1'] = W1 * grads['b1'].T
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        return scores
-        # return loss, grads
+        d_scores = probs
+        d_scores[y] -= 1
+        d_scores /= N
+        
+        # the gradient from above if d_scores (after we subtracted - 1)
+        # the local gradient is the hidden scores because derivative of W2.max(0, W1*X + b1) + b2 is hidden layer's output
+        grads['W2'] = np.dot(hidden.T, d_scores)
+        # the local gradient is 1 so we just multiply 1 by the sum of d_scores
+        grads['b2'] = np.sum(d_scores, axis=0)
+        
+        # SUPER IMPORTANT
+        # compute gradient at the hidden layer:
+        d_hidden = np.dot(d_scores, W2.T)
+        
+        # max gate:
+        d_hidden[hidden <= 0] = 0
+        
+        # now the W1 layer:
+        grads['W1'] = np.dot(X.T, d_hidden)
+        
+        grads['b1'] = np.sum(d_hidden, axis=0)
+        
+        
+        return loss, grads
 
     def train(self, X, y, X_val, y_val,
               learning_rate=1e-3, learning_rate_decay=0.95,
@@ -190,7 +190,7 @@ class TwoLayerNet(object):
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            # pass
+            pass
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
@@ -252,7 +252,7 @@ class TwoLayerNet(object):
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        # pass
+        pass
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
