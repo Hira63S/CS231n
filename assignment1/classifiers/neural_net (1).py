@@ -104,10 +104,17 @@ class TwoLayerNet(object):
         # loss = 
         
         exp_scores = np.exp(scores)
-        probs = exp_scores/np.sum(exp_scores)
-        loss = -1 * np.log(probs[y])
+        probs = exp_scores/np.sum(exp_scores, axis=1, keepdims=True)
+        
+        log_loss = -1 * np.log(probs[y])
         # loss = -1 * np.log(exp_scores[y]/(np.sum(exp_scores)))
         
+        # average the cross-entropy and add regularization loss:
+        data_loss = np.sum(log_loss)/N
+        
+        reg_loss = 0.5 * reg* np.sum(W1*W1) + 0.5 * reg * np.sum(W2*W2)
+        
+        loss = data_loss + reg_loss
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Backward pass: compute gradients
@@ -119,12 +126,6 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        # p_k is the probability for k class
-        # dl_df = probs[y] - 1
-        # grads['b2'] = 1 * dl_df
-        # grads['W2'] = W2 * grads['b2'].T
-        # grads['b1'] = 1 * grads['W2']
-        # grads['W1'] = W1 * grads['b1'].T
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         d_scores = probs
         d_scores[y] -= 1
@@ -148,7 +149,9 @@ class TwoLayerNet(object):
         
         grads['b1'] = np.sum(d_hidden, axis=0)
         
-        
+        # the regularization
+        grads['W1'] += reg * W1
+        grads['W2'] += reg * W2
         return loss, grads
 
     def train(self, X, y, X_val, y_val,
