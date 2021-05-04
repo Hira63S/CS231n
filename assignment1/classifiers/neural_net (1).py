@@ -5,6 +5,7 @@ from builtins import object
 import numpy as np
 import matplotlib.pyplot as plt
 from past.builtins import xrange
+import random
 
 class TwoLayerNet(object):
     """
@@ -104,7 +105,7 @@ class TwoLayerNet(object):
         # loss = 
         
         exp_scores = np.exp(scores)
-        probs = exp_scores/np.sum(exp_scores, axis=1, keepdims=True)
+        probs = exp_scores/np.sum(exp_scores, axis=1).reshape(N,1)
         
         log_loss = -1 * np.log(probs[y])
         # loss = -1 * np.log(exp_scores[y]/(np.sum(exp_scores)))
@@ -128,7 +129,9 @@ class TwoLayerNet(object):
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         d_scores = probs
-        d_scores[y] -= 1
+        # for scores at the real label value, we subtract 1 so that we don't have an extra
+        # margin of 1 being added to the scores
+        d_scores[np.arange(N), y] -= 1
         d_scores /= N
         
         # the gradient from above if d_scores (after we subtracted - 1)
@@ -136,12 +139,9 @@ class TwoLayerNet(object):
         grads['W2'] = np.dot(hidden.T, d_scores)
         # the local gradient is 1 so we just multiply 1 by the sum of d_scores
         grads['b2'] = np.sum(d_scores, axis=0)
-        
-        # SUPER IMPORTANT
-        # compute gradient at the hidden layer:
+
         d_hidden = np.dot(d_scores, W2.T)
-        
-        # max gate:
+
         d_hidden[hidden <= 0] = 0
         
         # now the W1 layer:
@@ -192,12 +192,19 @@ class TwoLayerNet(object):
             # them in X_batch and y_batch respectively.                             #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
+            # generate a random no. with random.randn
+            # randomize the training examples as that helps with convergence during 
+            # epoch over epoch training
+            # random_ids = np.random.choice(num_train, batch_size)
+            # X, y = random.shuffle(X, y)
+            for i in range(0, X.shape[0], batch_size):
+            
+                X_batch = X[it:it + batch_size]
+                y_batch = y[it:it + batch_size]
 
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-            # Compute loss and gradients using the current minibatch
+            # Compute loss and gradients using the current minibatch 
             loss, grads = self.loss(X_batch, y=y_batch, reg=reg)
             loss_history.append(loss)
 
@@ -208,9 +215,10 @@ class TwoLayerNet(object):
             # stored in the grads dictionary defined above.                         #
             #########################################################################
             # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-            pass
-
+            # update the weights here from the gradients saved in grads dictionary
+            for layers in grads:
+                self.params[layers] -= learning_rate * grads[layers]
+            
             # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
             if verbose and it % 100 == 0:
@@ -254,9 +262,15 @@ class TwoLayerNet(object):
         # TODO: Implement this function; it should be VERY simple!                #
         ###########################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        # highest score i.e. max scores
+        # get the label y at the location of the highest score:
+        # y_pred = np.argsort(scores, axis=1)[:, -1]
+        # do we have to calculate scores yere again?! 
+        scores_i = np.dot(X, self.params['W1']) + self.params['b1']
+        scores_j = np.maximum(0, scores_i)
+        scores = np.dot(scores_j, self.params['W2']) + self.params['b2']
+        # y = np.argmax(scores, axis=1)
+        y_pred = np.argmax(scores, axis=1)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         return y_pred
