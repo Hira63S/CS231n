@@ -101,21 +101,15 @@ class TwoLayerNet(object):
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        # correct_scores = scores[y]
-        # loss = 
-        
         exp_scores = np.exp(scores)
         probs = exp_scores/np.sum(exp_scores, axis=1).reshape(N,1)
-        
         log_loss = -1 * np.log(probs[y])
-        # loss = -1 * np.log(exp_scores[y]/(np.sum(exp_scores)))
-        
+
         # average the cross-entropy and add regularization loss:
-        data_loss = np.sum(log_loss)/N
-        
-        reg_loss = 0.5 * reg* np.sum(W1*W1) + 0.5 * reg * np.sum(W2*W2)
-        
+        data_loss = (np.sum(log_loss))/N
+        reg_loss = (0.5 * reg* np.sum(W1*W1)) + (0.5 * reg * np.sum(W2*W2))
         loss = data_loss + reg_loss
+        
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # Backward pass: compute gradients
@@ -126,32 +120,22 @@ class TwoLayerNet(object):
         # grads['W1'] should store the gradient on W1, and be a matrix of same size #
         #############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         d_scores = probs
-        # for scores at the real label value, we subtract 1 so that we don't have an extra
-        # margin of 1 being added to the scores
-        d_scores[np.arange(N), y] -= 1
-        d_scores /= N
+        d_scores[np.arange(N), y] -= 1       # for scores at the real label value, we subtract 1 so that we don't have an extra margin of 1 being added to the scores
+        # d_scores /= N
         
         # the gradient from above if d_scores (after we subtracted - 1)
         # the local gradient is the hidden scores because derivative of W2.max(0, W1*X + b1) + b2 is hidden layer's output
-        grads['W2'] = np.dot(hidden.T, d_scores)
-        # the local gradient is 1 so we just multiply 1 by the sum of d_scores
-        grads['b2'] = np.sum(d_scores, axis=0)
-
+        grads['W2'] = np.dot(hidden.T, d_scores) / N
+        grads['b2'] = np.sum(d_scores, axis=0) / N # local d=1 and grad from above is sum of d_scores
         d_hidden = np.dot(d_scores, W2.T)
-
-        d_hidden[hidden <= 0] = 0
-        
-        # now the W1 layer:
-        grads['W1'] = np.dot(X.T, d_hidden)
-        
-        grads['b1'] = np.sum(d_hidden, axis=0)
-        
+        d_hidden[hidden <= 0] = 0 # taking care of non-linearity
+        grads['W1'] = np.dot(X.T, d_hidden) / N
+        grads['b1'] = np.sum(d_hidden, axis=0) / N
         # the regularization
         grads['W1'] += reg * W1
         grads['W2'] += reg * W2
+        # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         return loss, grads
 
     def train(self, X, y, X_val, y_val,
