@@ -74,7 +74,10 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        self.params['W1'] = np.random.normal(0, weight_scale, size=(input_dim, hidden_dim))
+        self.params['b1'] = np.zeros(input_dim)
+        self.params['W2'] = np.random.normal(0, weight_scale, size=(hidden_dim, num_classes)
+        self.params['b2'] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -147,8 +150,16 @@ class FullyConnectedNet(object):
         # layer, etc.                                                              #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        # fully connected net:
+        l1 = np.dot(X, W1) + b1
+        # non-linearity
+        n1 = np.max(0, l1)
+        # second layer:
+        scores = np.dot(n1, W2) + b2
+        # the above l2 would be scores
+        
+        if self.use_dropout:
+            
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
