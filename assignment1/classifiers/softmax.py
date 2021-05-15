@@ -81,15 +81,16 @@ def softmax_loss_vectorized(W, X, y, reg):
     # no loops loss:
     scores = np.dot(X, W)
     # exponentiate the loss:
-    n_scores = np.sum(np.exp(scores))
-    c_corr = np.exp(scores[y[i]])
+    exp_scores = np.exp(scores)
+    # c_corr = np.exp(scores)
     # exponentiate
-    exp = -1 * np.log(c_corr/n_scores)
-    corr_prob = exp[range(num_train), y]
+    exp = exp_scores/np.sum(exp_scores, axis=1, keepdims=True)
+    corr_prob = -np.log(exp[range(num_train), y])
     loss = np.sum(corr_prob)
+    loss /= num_train
     loss += 0.5 * reg * np.sum(W**2)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    dscores = prob_scores
+    dscores = exp
     dscores[range(num_train), y] -= 1
     dW = np.dot(X.T, dscores)
     dW /= num_train
