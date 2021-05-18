@@ -73,12 +73,10 @@ class FullyConnectedNet(object):
         # parameters should be initialized to zeros.                               #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        self.params['W1'] = np.random.normal(0, weight_scale, size=(input_dim, hidden_dim))
-        self.params['b1'] = np.zeros(input_dim)
-        self.params['W2'] = np.random.normal(0, weight_scale, size=(hidden_dim, num_classes)
+        self.params['W1'] = weight_scale * np.random.randn(input_dim, hidden_dims)
+        self.params['W2'] = weight_scale * np.random.randn(hidden_dims, num_classes)
+        self.params['b1'] = np.zeros(hidden_dims)
         self.params['b2'] = np.zeros(num_classes)
-
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
@@ -158,7 +156,7 @@ class FullyConnectedNet(object):
         scores = np.dot(n1, W2) + b2
         # the above l2 would be scores
         
-        if self.use_dropout:
+        # if self.use_dropout:
             
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
