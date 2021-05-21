@@ -73,10 +73,26 @@ class FullyConnectedNet(object):
         # parameters should be initialized to zeros.                               #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-        self.params['W1'] = weight_scale * np.random.randn(input_dim, hidden_dims)
-        self.params['W2'] = weight_scale * np.random.randn(hidden_dims, num_classes)
-        self.params['b1'] = np.zeros(hidden_dims)
-        self.params['b2'] = np.zeros(num_classes)
+        for i in range(self.num_layers):
+            # for the very first layer:
+            if i ==0:
+                self.params['W' + str(i+1)] = weight_scale * np.random.randn(input_dim, hidden_dims[i])
+                self.params['b' + str(i+1)] = np.zeros(hidden_dims[i])
+                if self.use_batchnorm:
+                    self.params['gamma' + str(i+1)] = np.ones(hidden_dims[i])
+                    self.params['beta' + str(i+1)] = np.zeros(hidden_dims[i])
+            # for subsequent layers:
+            elif i < self.num_layers - 1:
+                self.params['W' + str(i+1)] = weight_scale * np.random.rand(hidden_dims[i-1], hidden_dims[i])
+                self.params['b' + str(i+1)] = np.zeros(hidden_dims[i])
+                
+                if self.use_batchnorm:
+                    self.params['gamma' + str(i+1)] = np.ones(hidden_dims[i])
+                    self.params['beta' + str(i+1)] = np.zeros(hidden_dims[i])
+                
+            else:
+                self.params['W' + str(i+1)] = weight_scale * np.random.randn(hidden_dims[i-1], num_classes)
+                self.params['b' + str(i+1)] = np.zeros(num_classes)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
