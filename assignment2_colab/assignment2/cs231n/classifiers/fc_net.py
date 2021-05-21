@@ -150,7 +150,9 @@ class FullyConnectedNet(object):
         if self.normalization == "batchnorm":
             for bn_param in self.bn_params:
                 bn_param["mode"] = mode
+                
         scores = None
+        cache = {}
         ############################################################################
         # TODO: Implement the forward pass for the fully connected net, computing  #
         # the class scores for X and storing them in the scores variable.          #
@@ -165,16 +167,31 @@ class FullyConnectedNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         # fully connected net:
-        l1 = np.dot(X, W1) + b1
-        # non-linearity
-        n1 = np.max(0, l1)
-        # second layer:
-        scores = np.dot(n1, W2) + b2
-        # the above l2 would be scores
-        
-        # if self.use_dropout:
+        # first input layer:
+        a = {'layer0': X}
+        for i in range(self.num_layers):
+            W, b = self.params['W' + str(i+1)], self.params['b' + str(i+1)]
+            l, l_prev = 'layer' + str(i+1), 'layer'+str(i)
             
-
+            if mode=='train':
+                bn_params={'mode': 'train'}
+            else:
+                bn_params = {'mode': 'test'}
+        
+            if i < self.num_layers-1:
+                if self.use_batchnorm and self.use_dropout:
+                    gamma, beta = self.params['gamma' + str(i+1)], self.aprams['beta' + str(i+1)]
+                    a[l], self.cache[l] = affine_batchnorm_relu_dropout_forward(a[l_prev], W, b, gamma, beta, bn_params, self.dropout_param)
+                elif self.use_dropout:
+                    a[l], self.cache[l] = affine_relue_dropout_forward(a[l_prev], W, b, self.dropout_param)
+                elif self.use_batchnorm:
+                    gamma, beta = self.params['gamma' + str(i+1)], self.params['beta'+str(i+1)]
+                    a[l], self.cache[l] = affine_batchnorm_relu_forward(a[l_prev], W, b, gamma, beta, bn_params)
+                else:
+                    a[l], self.cache[l] = affine_relu_forward(a[l_prev], W, b)
+            
+            else:
+                a[l], self.cache[l] = affine_forward(a[l_prev], W, b)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
