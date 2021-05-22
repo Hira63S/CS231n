@@ -216,9 +216,40 @@ class FullyConnectedNet(object):
         # of 0.5 to simplify the expression for the gradient.                      #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
-
+        
+        lastlayer = self.num_layers
+        d = {}
+        loss, d_out = softmax_loss(scores, y)
+        
+        grads = {}
+        
+        # backprop through the last layer:
+        w = 'W' + str(lastlayer)
+        b = 'b' + str(lastlayer)
+        c = 'layer' + str(last)
+        
+        dh, grads[w], grads[b] = affine_backward(d_out, self.cache[c])
+        loss += 0.5 * self.reg * np.sum(self.params[w]**2)
+        grads[w] += self.reg * self.params[w]
+        
+        for i in reversed(range(lastlayer -1)):
+            w = 'W' + str(i+1)
+            b = 'b' + str(i+1)
+            gamma = 'gamma' + str(i+1)
+            beta = 'beta' + str(i+1)
+            c = 'layer' + str(i+1)
+            
+            if self.use_batchnorm and self.use_dropout:
+                dh, grads[w], grads[b], grads[gamma], grads[beta] = affine_batchnorm_relu_dropout_backward(dh, self.cache[c])
+            elif self.use_dropout:
+                dh, grads[w], grads[b] = affine_relu_dropout_backward(dh, self.cache[c])
+            elif self.use_batchnorm:
+                dh, grads[w], grads[b], grads[gamma], grads[beta] = affine_batchnorm_relu_backward(dh, self.cahce[c])
+            else:
+                dh, grads[w], grads[b] = affine_relu_backward(dh,self.cache[c])
+        
+            loss += 0.5 * self.reg * np.sum(self.params[w]**2)
+            grads[w] += self.reg * self.params[w]
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
         #                             END OF YOUR CODE                             #
