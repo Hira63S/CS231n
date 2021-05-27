@@ -59,7 +59,7 @@ def affine_backward(dout, cache):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    N, D = x.shape
+    N, D = x.shape()
     X = np.reshape(x, (N, -1))
     dx = np.dot(dout, w.T).reshape(x.shape)
     dw = np.dot(X.T, dout)
@@ -207,10 +207,18 @@ def batchnorm_forward(x, gamma, beta, bn_param):
     momentum = bn_param.get("momentum", 0.9)
 
     N, D = x.shape
+    
     running_mean = bn_param.get("running_mean", np.zeros(D, dtype=x.dtype))
     running_var = bn_param.get("running_var", np.zeros(D, dtype=x.dtype))
-
+    
+    
+    batch_mean = np.sum(x, axis=0) / N # averages the sum across a specific axis
+    batch_var = np.var(x, axis=0) # computes variance along a specific axis
+    running_mean = momentum * running_mean + (1-momentum) * batch_mean
+    running_var = momentum * running_var + (1-momentum) * batch_var
+    batch_var += eps
     out, cache = None, None
+    
     if mode == "train":
         #######################################################################
         # TODO: Implement the training-time forward pass for batch norm.      #
@@ -235,8 +243,10 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
-
+        # to normalize the incoming data:
+        scores = np.divide(x - batch_mean, np.sqrt(batch_var + eps))
+        out = gamma * batch_norm_x + beta
+        cache = (x, batch_norm_x, batch_mean, batch_var, gamma, beta, bn_param)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
         #                           END OF YOUR CODE                          #
@@ -250,7 +260,8 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        batch_norm_x = np.divide(x-running_mean, np.sqrt(running_var + eps))
+        out = gamma * batch_norm_x + beta
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
