@@ -665,27 +665,19 @@ def max_pool_forward_naive(x, pool_param):
     # TODO: Implement the max-pooling forward pass                            #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    x, w, b, conv_param = cache
-    _, C, F, _ = w.shape
-    N, K, H_out, W_out = dout.shape
-    S = conv_param['stride']
-    P = conv_param['pad']
-    x_pad = np.pad(x, [(0,0), (0,0), (P,P), (P,P)], mode='constant')
-    dw, db, dx = np.zeros_like(w), np.zeros_like(b), np.zeros_like(x_pad)
+    N, C, H, W = x.shape
+    ph, pw, S = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    H_out = (H - ph)/S + 1
+    W_out = (W - pw)/S + 1
+    out = np.zeros((N, C, H_out, W_out))
     
     for i in range(N):
-        image = x_pad[i, :, :, :]
-        for j in range(K):
+        for j in range(C):
             for k in range(H_out):
                 for l in range(W_out):
-                    image_patch = image[:, (k*S):(k*S + F), (l*S):(l*S+F)]
-                    dw[j, :, :, :] += image_patch * dout[i, j, k, l]
-                    db[j] += dout[i, j, k, l]
-                    dx[i, :, (k*S):(k*S + F), (l*S):(l*S+F)] += w[j, :, :, :] * dout[i, j, k, l]
-        
-    dx = dx[:, :, P:-P, P:-P]
-    
-    return dx, dw, db
+                    image_patch = x[i, j, :, :]
+                    out[i,j,k,l] = np.max(image_patch[k*S:k*S + ph, l*S:l*S+pw])
+
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -704,14 +696,28 @@ def max_pool_backward_naive(dout, cache):
     Returns:
     - dx: Gradient with respect to x
     """
-    dx = None
+    x, pool_param = cache
+    ph, pw, S = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
+    N, C, H, W = x.shape
+    _, _, H_out, W_out = dout.shape
+    dx = np.zeros_like(x)
+    # dx = None
     ###########################################################################
     # TODO: Implement the max-pooling backward pass                           #
     ###########################################################################
-    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)****
+    
+    for i in range(N):
+        for j in range(C):
+            image = x[i, j, :, :]
+            for k in range(H_out):
+                for l in range(W_out):
+                    image_patch = image[(k*S:k*S+ph), (l*S:l*S+pw)]
+                    max_i = np.unravel_index(np.argmax(image_patch), image_patch.shape)
+                    max_i = tuple(map(sum, zip((k*S, l*S), max_i)))
+                    dx[(i, j) + max_index] += dout[i,j,k,l]
+    
+    
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
