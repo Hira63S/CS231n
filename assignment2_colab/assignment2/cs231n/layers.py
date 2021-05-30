@@ -394,7 +394,11 @@ def layernorm_forward(x, gamma, beta, ln_param):
     # the batch norm code and leave it almost unchanged?                      #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+    N, D = x.shape
+    feature_mean = np.sum(x, axis=1)/N
+    feature_var = np.var(x, axis=1)
+    xout = x - feature_mean / (np.sqrt(np.power(feature_var)**2 + ln_param['eps']))
+    out = gamma * xout + beta
     pass
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
