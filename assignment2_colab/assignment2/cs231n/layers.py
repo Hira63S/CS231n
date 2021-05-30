@@ -567,8 +567,8 @@ def conv_forward_naive(x, w, b, conv_param):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     N, C, H, W = x.shape
     K, _, F, _ = w.shape
-    S = conv_param['stride']
-    P = conv_param['pad']
+    S = conv_param['stride'] # just a number for stride
+    P = conv_param['pad'] # a number for padding
     H_out = (H-F + 2 * P) / S + 1
     W_out = (W-F + 2 * P) / S + 1
     out = np.zeros((N, K, H_out, W_out))
@@ -582,7 +582,8 @@ def conv_forward_naive(x, w, b, conv_param):
         for j in range(K):
             for k in range(H_out):
                 for l in range(W_out):
-                    image_patch = image[:, (k*S):(k*S + F), (l*S):(l*S + F)]
+                    image_patch = image[:, (k*S):(k*S + F), (l*S):(l*S + F)] # go to the first pixel * the stride, and first pixel * stride+filter size. Then, do the same for the length/width of the image. 
+                    # multiply them all, add them up and give the output in the out matrix.
                     out[i, j, k, l] = np.sum(np.multiply(image_patch, w[j, :, :, :])) + b[j]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -605,13 +606,32 @@ def conv_backward_naive(dout, cache):
     - dw: Gradient with respect to w
     - db: Gradient with respect to b
     """
-    dx, dw, db = None, None, None
+    x, w, b, conv_param = cache
+    _, C, F, _ = w.shape
+    N, K, H_out, W_out = dout.shape
+    S = conv_param['stride']
+    P = conv_param['pad']
+    x_pad = np.pad(x, [(0,0), (0,0), (P, P), (P, P)], mode='constant')
+    # create the derivative for x based on the padded x and not the original.
+    dw, db, dx = np.zeros_like(w), np.zeros_like(b), np.zeros_like(x_pad)
+    # dx, dw, db = None, None, None
     ###########################################################################
     # TODO: Implement the convolutional backward pass.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
+    
+    for i in range(N):
+        image = x_pad[i, :, :, :]
+        for j in range(K):
+            for k in range(H_out):
+                for l in range(W_out):
+                    image_patch = image[:, (k*S):(k*S+F), (l*S:l*S+F)]
+                    dw[j, :, :, :] += image_patch * dout[i, j, k, l]
+                    db[j] += dout[i, j, k, l]
+                    dx[i, :, (k*S):(k*S+F), (l*S):(l*S+F)] += w[j, :, :, :] * dout[i, j, k, l]
+    
+    dx = dx[:, :, P:-P, P:-P]
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
