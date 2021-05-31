@@ -306,7 +306,7 @@ def batchnorm_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     dxhat = dout * gamma
-    dvar = np.sum(dxhat, axix=0) * (x - batch_norm) * (-0.5 * np.power(batch_var + eps, -1.5))
+    dvar = np.sum(dxhat, axix=0) * (x - batch_mean) * (-0.5 * np.power(batch_var + eps, -1.5))
     dxm1 = dxhat/(batch_var + eps)
     dxm2 = np.ones((N,D)) * dvar / N * (2*(x-batch_mean))
     dmu = -1 * np.sum(dxm1 + dxm2, axis=0)
