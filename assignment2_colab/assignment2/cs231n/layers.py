@@ -25,7 +25,7 @@ def affine_forward(x, w, b):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    N, D = x.shape
+    N = x.shape[0]
     X = np.reshape(x, (N, -1))
     out = np.dot(X, w) + b
     
@@ -59,7 +59,7 @@ def affine_backward(dout, cache):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    N, D = x.shape
+    N = x.shape[0]
     X = np.reshape(x, (N, -1))
     dx = np.dot(dout, w.T).reshape(x.shape)
     dw = np.dot(X.T, dout)
