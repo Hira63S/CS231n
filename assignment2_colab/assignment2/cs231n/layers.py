@@ -153,13 +153,10 @@ def softmax_loss(x, y):
     exp_scores /=np.sum(exp_scores, axis=1, keepdims=True)
     # negative lgo:
     N = x.shape[0]
-    
     loss = -np.sum(np.log(exp_scores[np.arange(N), y]))/N
     dx = exp_scores.copy()
     dx[np.arange(N),y] -= 1
     dx /= N
-    
-
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
@@ -397,11 +394,12 @@ def layernorm_forward(x, gamma, beta, ln_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     N, D = x.shape
+    # across column
     feature_mean = np.sum(x, axis=1)/N
     feature_var = np.var(x, axis=1)
     xout = x - feature_mean / (np.sqrt(np.power(feature_var)**2 + ln_param['eps']))
     out = gamma * xout + beta
-    pass
+    
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
