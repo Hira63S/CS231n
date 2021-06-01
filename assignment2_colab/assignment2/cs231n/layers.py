@@ -59,7 +59,7 @@ def affine_backward(dout, cache):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-    N, D = x.shape()
+    N, D = x.shape
     X = np.reshape(x, (N, -1))
     dx = np.dot(dout, w.T).reshape(x.shape)
     dw = np.dot(X.T, dout)
@@ -115,7 +115,9 @@ def relu_backward(dout, cache):
     # TODO: Copy over your solution from Assignment 1.                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
+    # since dout is the gradient from the top, we just multiply it by the 
+    # max or positive values because of the ReLU gate just keeping +ve values.
+    # only the positive values impact the gradient to the top.
     dx = dout * (x> 0)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -148,12 +150,12 @@ def softmax_loss(x, y):
 
     # scores:
     exp_scores = np.exp(x - np.max(x, axis=1, keepdims=True))
-    out_scores /=np.sum(exp_scores, axis=1, keepdims=True)
+    exp_scores /=np.sum(exp_scores, axis=1, keepdims=True)
     # negative lgo:
     N = x.shape[0]
     
-    loss = -np.sum(np.log(out_scores[np.arange(N), y]))/N
-    dx = probs.copy()
+    loss = -np.sum(np.log(exp_scores[np.arange(N), y]))/N
+    dx = exp_scores.copy()
     dx[np.arange(N),y] -= 1
     dx /= N
     
@@ -625,7 +627,7 @@ def conv_backward_naive(dout, cache):
         for j in range(K):
             for k in range(H_out):
                 for l in range(W_out):
-                    image_patch = image[:, (k*S):(k*S+F), (l*S:l*S+F)]
+                    image_patch = image[:, (k*S):(k*S+F), (l*S):(l*S+F)]
                     dw[j, :, :, :] += image_patch * dout[i, j, k, l]
                     db[j] += dout[i, j, k, l]
                     dx[i, :, (k*S):(k*S+F), (l*S):(l*S+F)] += w[j, :, :, :] * dout[i, j, k, l]
@@ -712,7 +714,7 @@ def max_pool_backward_naive(dout, cache):
             image = x[i, j, :, :]
             for k in range(H_out):
                 for l in range(W_out):
-                    image_patch = image[(k*S:k*S+ph), (l*S:l*S+pw)]
+                    image_patch = image[(k*S):(k*S+ph), (l*S):(l*S+pw)]
                     max_i = np.unravel_index(np.argmax(image_patch), image_patch.shape)
                     max_i = tuple(map(sum, zip((k*S, l*S), max_i)))
                     dx[(i, j) + max_index] += dout[i,j,k,l]
