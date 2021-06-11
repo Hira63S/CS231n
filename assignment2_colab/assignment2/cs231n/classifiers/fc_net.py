@@ -59,7 +59,7 @@ class FullyConnectedNet(object):
         self.num_layers = 1 + len(hidden_dims)
         self.dtype = dtype
         self.params = {}
-
+        self.cache = {}
         ############################################################################
         # TODO: Initialize the parameters of the network, storing all values in    #
         # the self.params dictionary. Store weights and biases for the first layer #
@@ -196,7 +196,7 @@ class FullyConnectedNet(object):
         ############################################################################
         #                             END OF YOUR CODE                             #
         ############################################################################
-
+        scores = a['layer'+str(self.num_layers)]
         # If test mode return early.
         if mode == "test":
             return scores
@@ -226,7 +226,7 @@ class FullyConnectedNet(object):
         # backprop through the last layer:
         w = 'W' + str(lastlayer)
         b = 'b' + str(lastlayer)
-        c = 'layer' + str(last)
+        c = 'layer' + str(lastlayer)
 
         dh, grads[w], grads[b] = affine_backward(d_out, self.cache[c])
         loss += 0.5 * self.reg * np.sum(self.params[w]**2)
