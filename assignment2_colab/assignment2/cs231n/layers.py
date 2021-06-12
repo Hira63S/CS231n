@@ -163,7 +163,22 @@ def softmax_loss(x, y):
     ###########################################################################
     return loss, dx
 
-
+def affine_batchnorm_relu_forward(x, w, b, gamma, beta, bn_params):
+    
+    a1, fc_cache = affine_forward(x,w, b)
+    a2, bn_cache = batchnorm_forward(a1, gamma, beta, bn_params)
+    out, relu_cache = relu_forward(a2)
+    cache = (fc_cache, bn_cache, relu_cache)
+    return out, cache
+    
+def affine_batchnorm_relu_backward(dh, cache):
+    fc_cache, bn_cache, relu_cache = cache
+    da2 = relu_backward(dh, relu_cache)
+    da1, dgamma, dbeta = bachtnorm_backward(da2, bn_cache)
+    dx, dw, db = affine_backward(da1, fc_cache)
+    return dx, dw, db, dgamma, dbeta
+    
+    
 def batchnorm_forward(x, gamma, beta, bn_param):
     """Forward pass for batch normalization.
 
@@ -243,7 +258,7 @@ def batchnorm_forward(x, gamma, beta, bn_param):
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
         # to normalize the incoming data:
-        scores = np.divide(x - batch_mean, np.sqrt(batch_var + eps))
+        batch_norm_x = np.divide(x - batch_mean, np.sqrt(batch_var + eps))
         out = gamma * batch_norm_x + beta
         cache = (x, batch_norm_x, batch_mean, batch_var, gamma, beta, bn_param)
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -305,7 +320,7 @@ def batchnorm_backward(dout, cache):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
     dxhat = dout * gamma
-    dvar = np.sum(dxhat, axix=0) * (x - batch_mean) * (-0.5 * np.power(batch_var + eps, -1.5))
+    dvar = np.sum(dxhat, axis=0) * (x - batch_mean) * (-0.5 * np.power(batch_var + eps, -1.5))
     dxm1 = dxhat/(batch_var + eps)
     dxm2 = np.ones((N,D)) * dvar / N * (2*(x-batch_mean))
     dmu = -1 * np.sum(dxm1 + dxm2, axis=0)
@@ -479,7 +494,7 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        mask = np.random.binomial(1, p, size=x.shape)
+        mask = np.random.binomial(1, 1-p, size=x.shape)
         out = x * mask
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
@@ -492,7 +507,7 @@ def dropout_forward(x, dropout_param):
         #######################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        out = x * (p)
+        out = x * (1-p)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         #######################################################################
@@ -676,7 +691,7 @@ def max_pool_forward_naive(x, pool_param):
             for k in range(H_out):
                 for l in range(W_out):
                     image_patch = x[i, j, :, :]
-                    out[i,j,k,l] = np.max(image_patch[k*S:k*S + ph, l*S:l*S+pw])
+                    out[i,j,k,l] = np.max(image_patch[(k*S):(k*S + ph), (l*S):(l*S+pw)])
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -715,7 +730,7 @@ def max_pool_backward_naive(dout, cache):
                     image_patch = image[(k*S):(k*S+ph), (l*S):(l*S+pw)]
                     max_i = np.unravel_index(np.argmax(image_patch), image_patch.shape)
                     max_i = tuple(map(sum, zip((k*S, l*S), max_i)))
-                    dx[(i, j) + max_index] += dout[i,j,k,l]
+                    dx[(i, j) + max_i] += dout[i,j,k,l]
     
     
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
