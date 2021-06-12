@@ -69,7 +69,9 @@ def sgd_momentum(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    v = config.get('momentum') * v - config.get('learning_rate') * dw
+    # print('v: ', v)
+    next_w = w + v
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -106,14 +108,23 @@ def rmsprop(w, dw, config=None):
     # config['cache'].                                                        #
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-    pass
-
+    # adagrad
+    # cache += dw**2
+    # w += -learning_rate * dw / (np.sqrt(cache) + 1e-7)
+    
+    lr = config['learning_rate']
+    dr = config['decay_rate']
+    eps = config['epsilon']  
+    cache = config['cache']
+    
+    cache = dr * cache + (1-dr) * dw**2
+    next_w = w - lr * dw / (np.sqrt(cache)+eps)
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-
+    config['cache'] = cache
+    
     return next_w, config
 
 
@@ -152,11 +163,28 @@ def adam(w, dw, config=None):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    lr = config['learning_rate']
+    beta1 = config['beta1']
+    beta2 = config['beta2']
+    eps = config['epsilon']
+    m = config['m']
+    v = config['v']
+    t = config['t']
+    
+    t+=1
+    
+    m = beta1 * m + (1-beta1)*dw
+    v = beta2*v + (1-beta2) * dw**2
+    # correcting the bias:
+    mb = m/(1-beta1**t)
+    vb = v/(1-beta2**t)
+    next_w = w - lr*mb/(np.sqrt(vb)+eps)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
-
+    config['m'] = m
+    config['v'] = v
+    config['t'] = t
     return next_w, config
