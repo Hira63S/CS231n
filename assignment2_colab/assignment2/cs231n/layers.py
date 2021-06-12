@@ -150,7 +150,7 @@ def softmax_loss(x, y):
 
     # scores:
     exp_scores = np.exp(x - np.max(x, axis=1, keepdims=True))
-    exp_scores /=np.sum(exp_scores, axis=1, keepdims=True)
+    exp_scores /= np.sum(exp_scores, axis=1, keepdims=True)
     # negative lgo:
     N = x.shape[0]
     loss = -np.sum(np.log(exp_scores[np.arange(N), y])) / N

@@ -83,7 +83,7 @@ class FullyConnectedNet(object):
                     self.params['beta' + str(i+1)] = np.zeros(hidden_dims[i])
             # for subsequent layers:
             elif i < self.num_layers - 1:
-                self.params['W' + str(i+1)] = weight_scale * np.random.rand(hidden_dims[i-1], hidden_dims[i])
+                self.params['W' + str(i+1)] = weight_scale * np.random.randn(hidden_dims[i-1], hidden_dims[i])
                 self.params['b' + str(i+1)] = np.zeros(hidden_dims[i])
 
                 if self.use_batchnorm:
@@ -114,7 +114,7 @@ class FullyConnectedNet(object):
         # pass of the second batch use_batchnorm layer, etc.
         self.bn_params = []
         if self.use_batchnorm == "batchnorm":
-            self.bn_params = [{"mode": "train"} for i in range(self.num_layers - 1)]
+            self.bn_params = [{"mode": "train"} for i in xrange(self.num_layers - 1)]
         if self.use_batchnorm == "layernorm":
             self.bn_params = [{} for i in range(self.num_layers - 1)]
 
@@ -180,10 +180,10 @@ class FullyConnectedNet(object):
 
             if i < self.num_layers-1:
                 if self.use_batchnorm and self.use_dropout:
-                    gamma, beta = self.params['gamma' + str(i+1)], self.aprams['beta' + str(i+1)]
+                    gamma, beta = self.params['gamma' + str(i+1)], self.params['beta' + str(i+1)]
                     a[l], self.cache[l] = affine_batchnorm_relu_dropout_forward(a[l_prev], W, b, gamma, beta, bn_params, self.dropout_param)
                 elif self.use_dropout:
-                    a[l], self.cache[l] = affine_relue_dropout_forward(a[l_prev], W, b, self.dropout_param)
+                    a[l], self.cache[l] = affine_relu_dropout_forward(a[l_prev], W, b, self.dropout_param)
                 elif self.use_batchnorm:
                     gamma, beta = self.params['gamma' + str(i+1)], self.params['beta'+str(i+1)]
                     a[l], self.cache[l] = affine_batchnorm_relu_forward(a[l_prev], W, b, gamma, beta, bn_params)
