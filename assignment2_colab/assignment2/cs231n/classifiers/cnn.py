@@ -45,7 +45,7 @@ class ThreeLayerConvNet(object):
         self.params = {}
         self.reg = reg
         self.dtype = dtype
-
+        
         ############################################################################
         # TODO: Initialize weights and biases for the three-layer convolutional    #
         # network. Weights should be initialized from a Gaussian centered at 0.0   #
@@ -62,8 +62,11 @@ class ThreeLayerConvNet(object):
         # the start of the loss() function to see how that happens.                #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        for i in range(0, 3):
+            self.params['W' + str(i+1)] = np.random.normal(0.0, weight_scale, (num_filters, input_dim[0], filter_size, filter_size))
+            # self.params['W'+str(i+1)] = np.random.randn(num_filters, input_dim[0], filter_size, filter_size)
+            self.params['b' + str(i+1)] = np.zeros((num_filters,)
+            
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -101,8 +104,9 @@ class ThreeLayerConvNet(object):
         # cs231n/layer_utils.py in your implementation (already imported).         #
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
-
-        pass
+        
+        
+        out, cache = conv_forward_im2col(X, self.params, self.params, conv_param)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -125,7 +129,7 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        dx, dw, db = conv_backward_im2col(out, cache)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
