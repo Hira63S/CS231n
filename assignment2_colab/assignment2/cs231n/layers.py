@@ -174,7 +174,7 @@ def affine_batchnorm_relu_forward(x, w, b, gamma, beta, bn_params):
 def affine_batchnorm_relu_backward(dh, cache):
     fc_cache, bn_cache, relu_cache = cache
     da2 = relu_backward(dh, relu_cache)
-    da1, dgamma, dbeta = bachtnorm_backward(da2, bn_cache)
+    da1, dgamma, dbeta = batchnorm_backward(da2, bn_cache)
     dx, dw, db = affine_backward(da1, fc_cache)
     return dx, dw, db, dgamma, dbeta
     
@@ -584,8 +584,9 @@ def conv_forward_naive(x, w, b, conv_param):
     K, _, F, _ = w.shape
     S = conv_param['stride'] # just a number for stride
     P = conv_param['pad'] # a number for padding
-    H_out = (H-F + 2 * P) / S + 1
-    W_out = (W-F + 2 * P) / S + 1
+    H_out = (H-F + 2 * P) // S + 1
+    W_out = (W-F + 2 * P) // S + 1
+    # print('N: {}, K: {}, H_out: {}, w_out: {}'.format(N, K, H_out, W_out))
     out = np.zeros((N, K, H_out, W_out))
     
     # add the padding:
@@ -682,8 +683,8 @@ def max_pool_forward_naive(x, pool_param):
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     N, C, H, W = x.shape
     ph, pw, S = pool_param['pool_height'], pool_param['pool_width'], pool_param['stride']
-    H_out = (H - ph)/S + 1
-    W_out = (W - pw)/S + 1
+    H_out = (H - ph)//S + 1
+    W_out = (W - pw)//S + 1
     out = np.zeros((N, C, H_out, W_out))
     
     for i in range(N):
@@ -762,7 +763,12 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     - cache: Values needed for the backward pass
     """
     out, cache = None, None
-
+    
+    # mode = bn_param['mode']
+    # eps = bn_param['eps']
+    # m = bn_param['momentum']
+    # running_mean = bn_param.get("running_mean", np.zeros(D, dtype=x.dtype))
+    # running_var = bn_param.get("running_var", np.zeros(D, dtype=x.dtype))
     ###########################################################################
     # TODO: Implement the forward pass for spatial batch normalization.       #
     #                                                                         #
@@ -772,7 +778,15 @@ def spatial_batchnorm_forward(x, gamma, beta, bn_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    # Therefore, spatial batch normalization computes a mean and variance for each of the C feature channels by computing statistics over the minibatch dimension N as well the spatial dimensions H and W.
+    # SUMMING over the axis 0 i.e. rows and dividing by the number of examples.
+    # (N, C, H, W)
+    # reshape 
+    N, C, H, W = x.shape
+    x_reshape = x.transpose(0, 2, 3, 1).reshape(N*H*W, C)
+    out1, cache = batchnorm_forward(x_reshape, gamma, beta, bn_param)
+    out = out1.reshape(N, H, W, C).transpose(0, 3, 1, 2) 
+
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
@@ -805,7 +819,10 @@ def spatial_batchnorm_backward(dout, cache):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    N, C, H, W = dout.shape
+    dout_reshape = dout.transpose(0, 2, 3, 1).reshape(N*H*W, C)
+    dx1, dgamma, dbeta = batchnorm_backward(dout_reshaped, cache)
+    dx = dx1.reshape(N,H,W,C).transpose(0, 3, 1, 2)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
